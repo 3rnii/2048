@@ -1,20 +1,19 @@
 import { createContext, FC, ReactNode, useEffect, useState } from "react";
 import useGameReducer from './reducer';
-import { noop } from "../../utils";
 import { Coordinate, GameState, Movement, Tile } from "../../common/types";
 import { coordinatesEqual, getRandomCoordinate } from "../../utils/coordinates";
 import { isNil, flattenDeep } from "lodash";
-import { processTileAndBoardOnUpMovement, processTilesAndBoardOnDownMovement, processTilesAndBoardOnLeftMovement, processTilesAndBoardOnRightMovement } from './helper';
+import { doesBoardContainViableMove, processTileAndBoardOnUpMovement, processTilesAndBoardOnDownMovement, processTilesAndBoardOnLeftMovement, processTilesAndBoardOnRightMovement } from './helper';
 
 export const GameContext = createContext({
-    startGame: noop,
+    startGame:  () => {},
     getTiles: () => [] as Tile[],
     getTileAtPosition: (_: Coordinate) => undefined as Tile | undefined,
     getCurrentBoardValues: () => [] as (number | null)[][],
     hasMoved: false,
     move: (_: Movement) => {},
     status: 'new' as GameState,
-    resetGame: noop,
+    resetGame: () => {},
     setLock: (_: boolean) => {},
     isLocked: false
 });
@@ -93,22 +92,7 @@ export const GameProvider: FC<GameProviderProps> = ({ children }) => {
     const canMakeAnyMove = () => {
         const { board, tiles } = getBoardAndTiles();
 
-        // Check if any move would result in a different board state
-        const upResult = processTileAndBoardOnUpMovement(board, tiles);
-        const downResult = processTilesAndBoardOnDownMovement(board, tiles);
-        const leftResult = processTilesAndBoardOnLeftMovement(board, tiles);
-        const rightResult = processTilesAndBoardOnRightMovement(board, tiles);
-
-        // Compare board states - if any move changes the board, a move is possible
-        const boardToString = (b: string[][]) => JSON.stringify(b);
-        const currentBoardStr = boardToString(board);
-
-        return (
-            boardToString(upResult.board) !== currentBoardStr ||
-            boardToString(downResult.board) !== currentBoardStr ||
-            boardToString(leftResult.board) !== currentBoardStr ||
-            boardToString(rightResult.board) !== currentBoardStr
-        );
+        return doesBoardContainViableMove(board, tiles);
     }
 
     const checkState = () => {

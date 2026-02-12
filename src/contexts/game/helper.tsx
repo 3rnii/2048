@@ -220,3 +220,22 @@ export const processTilesAndBoardOnRightMovement = (currentBoard: string[][], cu
         tilesByIds: Object.keys(sanitizedTiles)
     }
 }
+
+export const doesBoardContainViableMove = (board: string[][], tiles: Record<string, Tile>) => {
+    // Check if any move would result in a different board state
+    const upResult = processTileAndBoardOnUpMovement(board, tiles);
+    const downResult = processTilesAndBoardOnDownMovement(board, tiles);
+    const leftResult = processTilesAndBoardOnLeftMovement(board, tiles);
+    const rightResult = processTilesAndBoardOnRightMovement(board, tiles);
+
+    // Compare board states - if any move changes the board, a move is possible
+    const boardToString = (b: string[][]) => JSON.stringify(b);
+    const currentBoardStr = boardToString(board);
+
+    return (
+        boardToString(upResult.board) !== currentBoardStr ||
+        boardToString(downResult.board) !== currentBoardStr ||
+        boardToString(leftResult.board) !== currentBoardStr ||
+        boardToString(rightResult.board) !== currentBoardStr
+    );
+}
